@@ -1,0 +1,4 @@
+== PostControllerTest
+operation::post-controller-test/create-post[snippets="http-request,http-response"]
+operation::post-controller-test/get-post[snippets="http-request,http-response"]
+operation::post-controller-test/delete-post[snippets="http-request,http-response"]
