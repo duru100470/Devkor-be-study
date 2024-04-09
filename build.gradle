@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.4'
+	id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 group = 'com.duru100470'
@@ -15,6 +16,7 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	asciidoctorExt
 }
 
 repositories {
@@ -24,6 +26,8 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
@@ -31,8 +35,47 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
+	implementation 'com.google.guava:guava:33.1.0-jre'
+	testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+	implementation 'com.h2database:h2'
+	asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	outputs.dir snippetsDir
+}
+
+jar {
+	enabled = false
+}
+
+ext {
+    snippetsDir = file('build/generated-snippets')
+}
+
+asciidoctor { 
+    configurations 'asciidoctorExt' // (7)
+    baseDirFollowsSourceFile() // (8)
+    inputs.dir snippetsDir // (9)
+    dependsOn test // (10)
+}
+
+asciidoctor.doFirst {
+    delete file('src/main/resources/static/docs')  // (11)
+}
+
+task copyDocument(type: Copy) { // (12)
+    dependsOn asciidoctor
+    from file("build/docs/asciidoc")
+    into file("src/main/resources/static/docs")
+}
+
+build {
+    dependsOn copyDocument
 }
